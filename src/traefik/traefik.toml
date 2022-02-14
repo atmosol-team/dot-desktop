@@ -1,0 +1,17 @@
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+  [entryPoints.http]
+    address = ":80"
+  [entryPoints.livereload]
+    address = ":35729"
+
+[retry]
+
+[api]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+watch = true
+
+[accessLog]

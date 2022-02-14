@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Defaults
-PACKAGES='desktop'
+PACKAGES='git@bitbucket.org:atmosol/dot-desktop.git'
 SSH_KEY=$HOME/.ssh/id_rsa
 SSH_COMMENT="$(whoami)@$(hostname)"
 
@@ -54,12 +54,12 @@ echo -e "\nStarting temporary SSH agent...\n"
 eval `ssh-agent` &>/dev/null
 ssh-add "$SSH_KEY"
 
-# Test to see if SSH key needs to be added to GitHub
-ssh -i "$SSH_KEY" -T git@github.com 2>/dev/null
+# Test to see if SSH key needs to be added to Bitbucket
+ssh -i "$SSH_KEY" -T git@bitbucket.org 2>/dev/null
 if [ $? -eq 255 ]; then
-    # SSH key doesn't connect to GitHub -- Prompt to upload
-    echo -e "\nYour SSH public key ($SSH_KEY.pub) does not appear to be associated with a GitHub account."
-    echo -e "You will need to add your public key to your GitHub account.\n"
+    # SSH key doesn't connect to Bitbucket -- Prompt to upload
+    echo -e "\nYour SSH public key ($SSH_KEY.pub) does not appear to be associated with a Bitbucket account."
+    echo -e "You will need to add your public key to your Bitbucket account.\n"
     
     # Try to be helpful and copy the public key to clipboard per OS
     if [ "$(command -v clip.exe)" ]; then
@@ -83,7 +83,7 @@ if [ $? -eq 255 ]; then
         echo ""
     fi
 
-    # Optionally open up GitHub URLs if supported
+    # Optionally open up Bitbucket URLs if supported
     if [ -z "$BROWSER" ]; then
         # Look for common browsers/OS support if not set in environment
         browsers=( "explorer.exe" "open" "xdg-open" "gnome-open" "browsh" "w3m" "links2" "links" "lynx" )
@@ -95,45 +95,46 @@ if [ $? -eq 255 ]; then
         done
     fi
     if [ -n "$BROWSER" ]; then
-        # Browser found -- Ask to open the URL
-        prompt_github=1
-        while [ $prompt_github -eq 1 ]; do
-            read -e -p "Open GitHub URL for adding SSH key? [Y/n/?] " open_github_url
-            case $open_github_url in
+        # Browser found -- Ask to open the Bitbucket URL
+        prompt_bitbucket=1
+        while [ $prompt_bitbucket -eq 1 ]; do
+            read -e -p "Open Bitbucket URL for adding SSH key? [Y/n/?] " open_bitbucket_url
+            case $open_bitbucket_url in
                 [Nn]|[Nn][Oo])
                     echo ""
-                    prompt_github=0
+                    prompt_bitbucket=0
                     ;;
                 [?]|[Hh]|[Hh][Ee][Ll][Pp])
-                    echo -e "\nOpening GitHub Help page...\n"
-                    $BROWSER "https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account"
+                    echo -e "\nOpening Bitbucket Help page...\n"
+                    $BROWSER "https://support.atlassian.com/bitbucket-cloud/docs/set-up-an-ssh-key/"
                     ;;
                 *)
-                    echo -e "\nOpening GitHub Add SSH Key page...\n"
-                    $BROWSER "https://github.com/settings/ssh/new"
-                    prompt_github=0
+                    echo -e "\nOpening Bitbucket SSH Keys page...\n"
+                    $BROWSER "https://bitbucket.org/account/settings/ssh-keys/"
+                    prompt_bitbucket=0
                     ;;
             esac
         done
     fi
 
     # Pause to give time to upload the key
-    read -n 1 -s -r -p "Please add your public key to your GitHub account, then press any key to continue..."
+    read -n 1 -s -r -p "Please add your public key to your Bitbucket account, then press any key to continue..."
     read -s -t 0 # Clear any extra keycodes (e.g. arrows)
     echo ""
     # Retest key and loop until we have success
-    ssh -i "$SSH_KEY" -T git@github.com 2>/dev/null
+    ssh -i "$SSH_KEY" -T git@bitbucket.org 2>/dev/null
     while [ $? -eq 255 ]; do
-        read -n 1 -s -r -p "Please add your public key to your GitHub account, then press any key to continue..."
+        read -n 1 -s -r -p "Please add your public key to your Bitbucket account, then press any key to continue..."
         read -s -t 0 # Clear any extra keycodes (e.g. arrows)
         echo ""
-        ssh -i "$SSH_KEY" -T git@github.com 2>/dev/null
+        ssh -i "$SSH_KEY" -T git@bitbucket.org 2>/dev/null
     done
 fi
+# End BitBucket
 
 echo -e "\nInstalling ellipsis with the following packages: $PACKAGES...\n"
 
-curl -sL ellipsis.sh | ELLIPSIS_USER="$ELLIPSIS_USER" ELLIPSIS_PROTO='git' PACKAGES="$PACKAGES" sh
+curl -sL ellipsis.sh | ELLIPSIS_USER="$ELLIPSIS_USER" PACKAGES="$PACKAGES" sh
 
 # Stop the SSH agent
 ssh-agent -k &>/dev/null

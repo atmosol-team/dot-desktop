@@ -1,0 +1,330 @@
+#!/bin/zsh
+
+# Set default config values
+dcompcmd="docker-compose"
+dcompautoname=""
+dcompfns=""
+dcompprojectname=""
+URL=""
+
+# If environment docker-compose project name default is not set, consider autonaming
+if [[ -z "$COMPOSE_PROJECT_NAME" ]]; then
+  dcompautoname="1";
+fi
+
+# Account for top-level arguments for docker-compose
+case "$1" in
+  "-f" | "--file" | "-p" | "--project-name")
+    while [[ "$1" == "-f" || "$1" == "--file" || "$1" == "-p" || "$1" == "--project-name" ]]; do
+      if [[ "$1" == "-f" || "$1" == "--file" ]]; then
+        if [[ "$2" =~ ^[a-zA-Z]+$ ]]; then
+          dcompfns="$dcompfns -f docker-compose.$2.yml"
+        else
+          dcompfns="$dcompfns -f $2"
+        fi
+        shift 2
+      elif [[ "$1" == "-p" || "$1" == "--project-name" ]]; then
+        dcompfns="$dcompfns -p $2"
+        dcomprpojectname="$2"
+        shift 2
+        dcompautoname=""
+      fi
+    done
+    if [ ! -z "$dcompfns" ]; then
+      dcompcmd="docker-compose$dcompfns"
+    fi
+    ;;
+esac
+
+cmd="$(basename $0)";
+subcmd="$1";
+
+function verbalize() {
+  params="$@";
+  format_command $@;
+  eval "$params";
+}
+
+function format_command() {
+  echo "  \$ \e[1m\e[97m$@\e[0m";
+}
+
+function display_url() {
+  if [ -f ".env" ]; then
+    SUBDOMAIN=$(grep ATMO_LOCAL_SUBDOMAIN .env | cut -d '=' -f2)
+  
+    if [ -n "$SUBDOMAIN" ]; then
+      URL="http://${SUBDOMAIN}.local.docker.atmosol.net"
+    fi
+  fi
+
+  if [ -n "$URL" ]; then
+    echo ""
+    echo "Your project's default local URL is:"
+    echo "  $URL"
+    echo "";
+  fi
+}
+
+function cd_to_dockercompose_folder () {
+  dir="$(pwd)";
+  DCFILE="";
+  while [ -z "$DCFILE" ]; do
+    if [ -f "$dir/docker-compose.yml" ]; then
+      DCFILE=$(realpath $dir/docker-compose.yml);
+      if [ "$(basename $dir)" = ".docker" ]; then
+        dir="$(dirname $dir)";
+      fi
+    elif [ -f "$dir/.docker/docker-compose.yml" ]; then
+      DCFILE=$(realpath $dir/.docker/docker-compose.yml);
+    else
+      if [ "$(dirname $dir)" = "$dir" ]; then
+        ( >&2 echo "ERROR: $cmd $subcmd must be run from a Docker project folder." )
+        exit 1;
+      fi
+      dir="$(dirname $dir)";
+    fi
+  done
+
+  if [ ! -z "$dcompautoname" ]; then
+    dcompcmd="$dcompcmd -p $(basename $dir)"
+    dcompprojectname="$(basename $dir)"
+  fi
+
+  cd "$(dirname $DCFILE)";
+
+  if [ -z "$COMPOSE_FILE" ]; then
+    if [ -f "docker-compose.linux.yml" ] && [ "$(uname -s)" = "Linux" ]; then
+      dcompcmd="$dcompcmd -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.linux.yml"
+    elif [ -f "docker-compose.mutagen.yml" ]; then
+      if [ ! -x "$(command -v mutagen)" ] && [ "$(uname -s)" = "Darwin" ]; then
+        echo "WARNING: You do not have mutagen installed. Files may not be properly syned to Docker container."
+      else
+      dcompcmd="$dcompcmd -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.mutagen.yml"
+      fi
+    fi
+  fi
+
+  format_command cd $(dirs);
+}
+
+case "$1" in
+
+# Wrapper for generic docker-compose commands
+"compose" | "c")
+  cd_to_dockercompose_folder;
+  shift 1;
+  verbalize "$dcompcmd $@"
+  ;;
+
+# Bring up docker containers if not already up
+"up" | "start")
+  shift;
+  cd_to_dockercompose_folder;
+  verbalize "$dcompcmd up -d $@";
+  if [ $? -eq 0 ]; then
+    if command -v mutagen; then
+      if [ -f ".atmo-mutagen.yml.dist" ]; then
+        PROJECT_NAME=$dcompprojectname envsubst < .atmo-mutagen.yml.dist > .atmo-mutagen.yml;
+      fi
+      if [ -f ".atmo-mutagen.yml" ]; then
+        mutagen project start -f .atmo-mutagen.yml;
+      fi
+    fi
+    display_url;
+  fi
+  ;;
+
+# Stop docker containers if they are running
+"down" | "halt" | "stop")
+  cd_to_dockercompose_folder;
+  if command -v mutagen; then
+    if [ -f ".atmo-mutagen.yml" ]; then
+      verbalize mutagen project terminate -f .atmo-mutagen.yml;
+    fi
+  fi
+  verbalize $dcompcmd down;
+  ;;
+
+# Stop and destroy containers, removing images
+"destroy" | "nuke")
+  cd_to_dockercompose_folder;
+  if command -v mutagen; then
+    if [ -f ".atmo-mutagen.yml" ]; then
+      verbalize mutagen project terminate -f .atmo-mutagen.yml;
+    fi
+  fi
+  verbalize $dcompcmd down -v --rmi 'local';
+  ;;
+
+# Stop and destroy containers, then bring up fresh
+"rebuild")
+  cd_to_dockercompose_folder;
+  if command -v mutagen; then
+    if [ -f ".atmo-mutagen.yml" ]; then
+      verbalize mutagen project terminate -f .atmo-mutagen.yml;
+    fi
+  fi
+  verbalize $dcompcmd down -v;
+  verbalize $dcompcmd build --pull;
+  verbalize $dcompcmd up -d;
+  if [ $? -eq 0 ]; then
+    if command -v mutagen; then
+      if [ -f ".atmo-mutagen.yml.dist" ]; then
+        PROJECT_NAME=$dcompprojectname envsubst < .atmo-mutagen.yml.dist > .atmo-mutagen.yml;
+      fi
+      if [ -f ".atmo-mutagen.yml" ]; then
+        verbalize mutagen project start -f .atmo-mutagen.yml;
+      fi
+    fi
+    display_url;
+  fi
+  ;;
+
+# Print status of containers
+"status" | "ps" | "ls")
+  ( cd_to_dockercompose_folder 2>/dev/null && verbalize $dcompcmd ps );
+  if [ "$?" -gt 0 ]; then
+    echo "No local project found; running in global context.";
+    verbalize docker ps;
+  fi;
+  ;;
+
+# Watch logs of containers (after bringing them up if not already up)
+"watch" | "logs")
+  shift;
+  cd_to_dockercompose_folder;
+  verbalize "$dcompcmd up -d $@";
+  if [ $? -eq 0 ]; then
+    if command -v mutagen; then
+      if [ -f ".atmo-mutagen.yml.dist" ]; then
+        PROJECT_NAME=$dcompprojectname envsubst < .atmo-mutagen.yml.dist > .atmo-mutagen.yml;
+      fi
+      if [ -f ".atmo-mutagen.yml" ]; then
+        verbalize mutagen project start -f .atmo-mutagen.yml;
+      fi
+    fi
+  fi
+  verbalize "$dcompcmd logs -f $@";
+  exit 0;
+  ;;
+
+# Print the default URL for a given project, based on the .env file
+"url")
+  cd_to_dockercompose_folder;
+  display_url;
+  exit 0;
+  ;;
+
+# Execute a command on a container
+"exec" | "x")
+  shift;
+  cd_to_dockercompose_folder;
+  verbalize $dcompcmd exec "$@";
+  exit 0;
+  ;;
+
+# Run a command on a non-persistent container
+"run" | "r")
+  shift;
+  cd_to_dockercompose_folder;
+  verbalize $dcompcmd run --rm "$@";
+  exit 0;
+  ;;
+
+# Run a command
+"run-global" | "rr")
+  shift;
+  verbalize "docker run --rm --interactive --tty $@"
+  exit 0;
+  ;;
+
+# Open a shell on the specified container (default: bash > sh)
+"ssh" | "sh" | "bash")
+  cd_to_dockercompose_folder;
+  if [ -z "$2" ]; then
+    ( >&2 echo "ERROR: Please specify a container to connect to."; )
+    exit 1;
+  fi
+  eval "$dcompcmd exec $2 which bash &>/dev/null"
+  if [ $? -eq 0 ]; then
+    verbalize $dcompcmd exec "$2" bash;
+  else
+    verbalize $dcompcmd exec "$2" sh;
+  fi
+  ;;
+
+# Run a composer command
+"composer" | "cmpr")
+  shift;
+  verbalize "docker run --rm --interactive --tty --volume \$PWD:/app --volume \$HOME/.config/composer:/tmp --user $(id -u):$(id -g) composer $@"
+  exit 0;
+  ;;
+
+# Run a bin/magento command
+"magento" | "m2")
+  shift;
+  cd_to_dockercompose_folder;
+  verbalize "$dcompcmd exec php php bin/magento $@"
+  exit 0;
+  ;;
+
+# Run a stencil-cli command
+"stencil" | "stc" | "bc")
+  shift;
+  cd_to_dockercompose_folder;
+  if [ "$1" = "init" ]; then
+    if [ -f ".stencil" ]; then
+      echo "File .stencil exists. No need to initialize. You may delete the docker-compose.init.yml file."
+    elif [ ! -f "docker-compose.init.yml" ]; then
+      echo "File docker-compose.init.yml not found. Check for a .stencil file for thie project on LastPass."
+    else
+      verbalize "docker-compose -f docker-compose.init.yml run --rm init"
+    fi
+  elif [ "$1" = "bundle" ] || [ "$1" = "push" ] || [ "$1" = "init" ] || [ "$1" = "pull" ]; then
+    verbalize "$dcompcmd exec stencil stencil $@"
+  else
+    verbalize "$dcompcmd exec stencil $@"
+  fi
+  exit 0;
+  ;;
+
+# Global commands -- affect all docker containers/images across host
+"global" | "g" | "all")
+  shift;
+  case "$1" in
+
+    # Stop all containers on the host
+    "down" | "halt" | "stop")
+      verbalize "docker stop \$(docker ps -q)";
+      ;;
+
+    # Remove all images on host (will skip images in use)
+    "rmi" | "rebuild-images")
+      verbalize "docker rmi \$(docker images -q)";
+      ;;
+
+    # Print status of all containers on host
+    "status" | "ps" | "ls")
+      verbalize docker ps;
+      ;;
+
+    *)
+      echo "Usage: $cmd $subcmd {down|rmi}";
+      exit 1;
+      ;;
+  esac
+  ;;
+
+*)
+  echo ""
+  echo "Usage: $cmd [-f|--file FILE] up|down|exec|sh|magento|stencil|watch|status|destroy|rebuild|global|run|compose [...]";
+  echo ""
+  echo "Shortcuts:"
+  echo "    m2 = magento    bc = stencil    x = exec"
+  echo "    ls = status    vg = global      r = run"
+  echo "    c = compose"
+  echo ""
+  exit 1;
+  ;;
+esac

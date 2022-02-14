@@ -11,14 +11,29 @@ apt_packages=(
     keychain
     zip
     unzip
+    php
+    php-cli
+    php-fpm
+    php-json
+    php-common
+    php-mysql
+    php-zip
+    php-gd
+    php-mbstring
+    php-curl
+    php-xml
+    php-pear
+    php-bcmath
 );
 
 # List of homebrew formulae to install on MacOS-based systems
 brew_packages=(
+    php@7.4
 );
 
 # List of choco packages to install on Windows systems
 choco_packages=(
+    vscode
 );
 
 # Set of platform-specific prerequisites to support each platform
@@ -33,7 +48,15 @@ wsl_prereqs=(
 test -n "$PKG_PATH" && . "$PKG_PATH/src/meta.bash"
 
 pkg.install() {
+    # Install packages first
     meta.install_packages
+
+    # Run init scripts
+    for file in $PKG_PATH/setup/*[.]sh; do
+        . "$file"
+    done
+
+    # Run initialization
     meta.check_init_autoload
     pkg.init
 }
@@ -47,5 +70,14 @@ pkg.init() {
     # Initialize keychain if it's installed
     if [[ "$(command -v keychain)" ]]; then
         eval `keychain --eval --agents ssh id_rsa`
+    fi
+}
+
+pkg.link() {
+    fs.link_files links;
+
+    # Create default gitignore
+    if [[ ! -f "$HOME/.gitignore" ]]; then
+        cp $PKG_PATH/src/gitconfig.example $HOME/.gitignore
     fi
 }
