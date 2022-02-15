@@ -73,6 +73,9 @@ pkg.init() {
         export PATH=$ELLIPSIS_PATH/bin:$PATH
     fi
 
+    # Add package bin to $PATH
+    export PATH=$PKG_PATH/bin:$PATH
+
     # Initialize keychain if it's installed
     if [[ "$(command -v keychain)" ]]; then
         eval `keychain -q --eval --agents ssh id_rsa`
