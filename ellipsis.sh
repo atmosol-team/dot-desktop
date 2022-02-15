@@ -34,6 +34,7 @@ brew_packages=(
 # List of choco packages to install on Windows systems
 choco_packages=(
     vscode
+    microsoft-windows-terminal
 );
 
 # Set of platform-specific prerequisites to support each platform
@@ -72,7 +73,7 @@ pkg.init() {
 
     # Initialize keychain if it's installed
     if [[ "$(command -v keychain)" ]]; then
-        eval `keychain --eval --agents ssh id_rsa`
+        eval `keychain -q --eval --agents ssh id_rsa`
     fi
 }
 
