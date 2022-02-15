@@ -49,15 +49,17 @@ wsl_prereqs=(
 test -n "$PKG_PATH" && . "$PKG_PATH/src/meta.bash"
 
 pkg.install() {
-    # Run package init to make executables available
-    pkg.init
+    # Add ellipsis bin to $PATH if it isn't there
+    if [ ! "$(command -v ellipsis)" ]; then
+        export PATH=$ELLIPSIS_PATH/bin:$PATH
+    fi
 
     # Install packages
     meta.install_packages
 
-    # Run init scripts
+    # Run setup scripts
     for file in $PKG_PATH/setup/*[.]sh; do
-        . "$file"
+        sh "$file"
     done
 
     # Run full initialization
@@ -75,6 +77,11 @@ pkg.init() {
     if [[ "$(command -v keychain)" ]]; then
         eval `keychain -q --eval --agents ssh id_rsa`
     fi
+
+    # Run init scripts
+    for file in $PKG_PATH/init/*[.]zsh; do
+        . "$file"
+    done
 }
 
 pkg.link() {
