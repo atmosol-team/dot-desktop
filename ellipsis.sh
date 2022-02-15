@@ -59,7 +59,7 @@ pkg.install() {
 
     # Run setup scripts
     for file in $PKG_PATH/setup/*[.]sh; do
-        sh "$file"
+        PKG_PATH=$PKG_PATH sh "$file"
     done
 
     # Run full initialization
