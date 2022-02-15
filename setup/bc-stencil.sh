@@ -6,6 +6,7 @@ if [ ! "$(command -v nvm)" ]; then
 fi
 
 # Configure NVM for Stencil
+export NVM_DIR="$HOME/.nvm"
 nvm install 12
 nvm use 12
 nvm alias default 12
