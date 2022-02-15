@@ -16,19 +16,19 @@ else
     RECOMMEND_RELOAD=0
 
     # Start dnsmasq and traefik
-    docker network create traefik_default &>/dev/null
+    docker network create traefik_default >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "Created traefik_default docker network."
     else
-        docker network inspect traefik_default &>/dev/null
+        docker network inspect traefik_default >/dev/null 2>&1
         if [ $? -eq 0 ]; then
             echo "Docker network traefik_default already exists."
         else
             echo "Error creating traefik_default docker network."
         fi
     fi
-    cd "$PKG_PATH/src/dnsmasq" && docker-compose up -d &>/dev/null && echo "Dockerized dnsmasq service started."
-    cd "$PKG_PATH/src/traefik" && docker-compose up -d &>/dev/null && echo "Dockerized traefik service started."
+    cd "$PKG_PATH/src/dnsmasq" && docker-compose up -d >/dev/null 2>&1 && echo "Dockerized dnsmasq service started."
+    cd "$PKG_PATH/src/traefik" && docker-compose up -d >/dev/null 2>&1 && echo "Dockerized traefik service started."
 
     # 
     if [ $RECOMMEND_RELOAD -ne 0 ]; then
