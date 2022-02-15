@@ -74,8 +74,7 @@ meta.check_init_autoload() {
     # Check again to see if ellipsis init is loaded anywhere. If not, ask.
     grep -Eq "[.].+($ELLIPSIS_RELPATH|$ELLIPSIS_PATH)/init[.]sh" "$HOME/".*rc &>/dev/null
     if [ $? -ne 0 ]; then
-        echo "Please add the ellipsis init script to your profile startup files. Ex:"
-        echo "  . $ELLIPSIS_RELPATH/init.sh"
+        echo -e "\nPlease add the ellipsis init script to your profile startup files. Ex:\n  . $ELLIPSIS_RELPATH/init.sh\n"
     fi
 }
 

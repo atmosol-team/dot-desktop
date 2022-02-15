@@ -48,7 +48,10 @@ wsl_prereqs=(
 test -n "$PKG_PATH" && . "$PKG_PATH/src/meta.bash"
 
 pkg.install() {
-    # Install packages first
+    # Run package init to make executables available
+    pkg.init
+
+    # Install packages
     meta.install_packages
 
     # Run init scripts
@@ -56,7 +59,7 @@ pkg.install() {
         . "$file"
     done
 
-    # Run initialization
+    # Run full initialization
     meta.check_init_autoload
     pkg.init
 }
