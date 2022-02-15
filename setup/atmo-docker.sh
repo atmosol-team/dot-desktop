@@ -27,8 +27,8 @@ else
             echo "Error creating traefik_default docker network."
         fi
     fi
-    cd "$PKG_DIR/src/dnsmasq" && docker-compose up -d &>/dev/null && echo "Dockerized dnsmasq service started."
-    cd "$PKG_DIR/src/traefik" && docker-compose up -d &>/dev/null && echo "Dockerized traefik service started."
+    cd "$PKG_PATH/src/dnsmasq" && docker-compose up -d &>/dev/null && echo "Dockerized dnsmasq service started."
+    cd "$PKG_PATH/src/traefik" && docker-compose up -d &>/dev/null && echo "Dockerized traefik service started."
 
     # 
     if [ $RECOMMEND_RELOAD -ne 0 ]; then
