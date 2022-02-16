@@ -8,9 +8,8 @@ packages=(
 
 # List of apt packages to install on any apt-based system
 apt_packages=(
+    imagemagick
     keychain
-    zip
-    unzip
     php
     php-cli
     php-fpm
@@ -24,17 +23,33 @@ apt_packages=(
     php-xml
     php-pear
     php-bcmath
+    zip
+    unzip
 );
 
 # List of homebrew formulae to install on MacOS-based systems
 brew_packages=(
+    imagemagick
+    keychain
     php@7.4
+);
+cask_packages=(
+    firefox
+    googlechrome
+    iterm2
+    microsoft-office
+    slack
+    tunnelblick
 );
 
 # List of choco packages to install on Windows systems
 choco_packages=(
-    vscode
+    firefox
+    googlechrome
+    microsoft-office-deployment
     microsoft-windows-terminal
+    slack
+    vscode
 );
 
 # Set of platform-specific prerequisites to support each platform
