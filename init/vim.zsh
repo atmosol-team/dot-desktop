@@ -1,1 +1,1 @@
-EDITOR=vim
+export EDITOR=vim
