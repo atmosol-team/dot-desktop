@@ -2,6 +2,7 @@
 
 # Main list of packages for desktop. OS-agnostic.
 packages=(
+    thomshouse/git
     thomshouse/zsh
     thomshouse-ellipsis/docker
 );
