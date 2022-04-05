@@ -44,10 +44,9 @@ pkg.install() {
     meta.install_packages
 
     # Run setup scripts
-    for file in $PKG_PATH/setup/*[.]sh; do
-        if [ -f "$file" ]; then
-            PKG_PATH=$PKG_PATH sh "$file"
-        fi
+    for file in $(find "$PKG_PATH/setup" -maxdepth 1 -type f -name "*.sh"); do
+        [ -e "$file" ] || continue
+        PKG_PATH=$PKG_PATH sh "$file"
     done
 
     # Run full initialization
@@ -70,10 +69,9 @@ pkg.init() {
     fi
 
     # Run init scripts
-    for file in $PKG_PATH/init/*[.]zsh; do
-        if [ -f "$file" ]; then
-            . "$file"
-        fi
+    for file in $(find "$PKG_PATH/init" -maxdepth 1 -type f -name "*.zsh"); do
+        [ -e "$file" ] || continue
+        . "$file"
     done
 }
 
