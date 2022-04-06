@@ -3,7 +3,7 @@
 # Main list of packages for desktop. OS-agnostic.
 packages=(
     thomshouse/git
-    thomshouse/zsh
+    ssh://git@bitbucket.org/atmosol/dot-zsh
     thomshouse-ellipsis/docker
 );
 
