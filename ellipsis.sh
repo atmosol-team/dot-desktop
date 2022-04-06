@@ -2,6 +2,7 @@
 
 # Main list of packages for desktop. OS-agnostic.
 packages=(
+    thomshouse/git
     thomshouse/zsh
     thomshouse-ellipsis/docker
 );
@@ -73,7 +74,8 @@ pkg.install() {
     meta.install_packages
 
     # Run setup scripts
-    for file in $PKG_PATH/setup/*[.]sh; do
+    for file in $(find "$PKG_PATH/setup" -maxdepth 1 -type f -name "*.sh"); do
+        [ -e "$file" ] || continue
         PKG_PATH=$PKG_PATH sh "$file"
     done
 
@@ -97,16 +99,12 @@ pkg.init() {
     fi
 
     # Run init scripts
-    for file in $PKG_PATH/init/*[.]zsh; do
+    for file in $(find "$PKG_PATH/init" -maxdepth 1 -type f -name "*.zsh"); do
+        [ -e "$file" ] || continue
         . "$file"
     done
 }
 
 pkg.link() {
     fs.link_files links;
-
-    # Create default gitignore
-    if [[ ! -f "$HOME/.gitignore" ]]; then
-        cp $PKG_PATH/src/gitconfig.example $HOME/.gitignore
-    fi
 }
