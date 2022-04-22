@@ -51,6 +51,9 @@ choco_packages=(
     microsoft-windows-terminal
     slack
     vscode
+    # libreoffice-fresh
+    # openvpn-connect
+    # ringcentral-classic
 );
 
 # Set of platform-specific prerequisites to support each platform
@@ -95,7 +98,9 @@ pkg.init() {
 
     # Initialize keychain if it's installed
     if [[ "$(command -v keychain)" ]]; then
-        eval `keychain -q --eval --agents ssh id_rsa`
+            tput smcup
+            eval `keychain -q --eval --agents ssh id_rsa`
+            tput rmcup
     fi
 
     # Run init scripts

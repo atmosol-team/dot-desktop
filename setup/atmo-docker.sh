@@ -13,8 +13,6 @@ elif [ ! -x "$(command -v mutagen)" ] && [ "$(uname -s)" = "Darwin" ]; then
     echo ""
 else
 
-    RECOMMEND_RELOAD=0
-
     # Start dnsmasq and traefik
     docker network create traefik_default >/dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -27,13 +25,30 @@ else
             echo "Error creating traefik_default docker network."
         fi
     fi
-    cd "$PKG_PATH/src/dnsmasq" && docker-compose up -d >/dev/null 2>&1 && echo "Dockerized dnsmasq service started."
-    cd "$PKG_PATH/src/traefik" && docker-compose up -d >/dev/null 2>&1 && echo "Dockerized traefik service started."
 
-    # 
-    if [ $RECOMMEND_RELOAD -ne 0 ]; then
-        echo ""
-        echo "It's strongly recommended that you close and reopen your terminal at this time."
-        echo ""
+    # Check to see if dnsmasq is running...
+    cd "$PKG_PATH/src/dnsmasq"
+    docker inspect dnsmasq >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        # Restart it if it's running
+        docker-compose down >/dev/null 2>&1 && echo "Stopping dnsmasq..." \
+            && docker-compose up -d >/dev/null 2>&1 && echo "Restarting dnsmasq..."
+    else
+        # Start it if it's not running
+        docker-compose up -d >/dev/null 2>&1 && echo "Starting dnsmasq..."
     fi
+    [ $? -ne 0 ] && echo "Error restarting dnsmasq!" 1>&2
+
+    # Check to see if traefik is running...
+    cd "$PKG_PATH/src/traefik"
+    docker inspect traefik_reverse-proxy_1 >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        # Restart it if it's running
+        docker-compose down >/dev/null 2>&1; echo "Stopping traefik..." # docker down will error because of the network
+        docker-compose up -d >/dev/null 2>&1 && echo "Restarting traefik..."
+    else
+        # Start it if it's not running
+        docker-compose up -d >/dev/null 2>&1 && echo "Starting traefik..."
+    fi
+    [ $? -ne 0 ] && echo "Error restarting traefik!" 1>&2
 fi
