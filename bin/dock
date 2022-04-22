@@ -108,6 +108,10 @@ function cd_to_dockercompose_folder () {
   format_command cd $(dirs);
 }
 
+function get_service_container_name() {
+  echo "$(docker inspect -f '{{.Name}}' $(docker-compose ps -q php) | cut -c2- 2>/dev/null)"
+}
+
 case "$1" in
 
 # Wrapper for generic docker-compose commands
@@ -265,7 +269,35 @@ case "$1" in
 "magento" | "m2")
   shift;
   cd_to_dockercompose_folder;
-  verbalize "$dcompcmd exec php php bin/magento $@"
+  case "$1" in
+    "grunt")
+      case "$2" in
+        "init")
+          verbalize "$dcompcmd exec php grunt clean && $dcompcmd exec php grunt exec && $dcompcmd exec php grunt less"
+          ;;
+        "watch")
+          verbalize "$dcompcmd exec php grunt watch";
+          ;;
+        *)
+          verbalize "$dcompcmd exec php grunt clean && $dcompcmd exec php grunt exec && $dcompcmd exec php grunt less"
+          verbalize "$dcompcmd exec php grunt watch";
+          ;;
+      esac
+      ;;
+    "db:dump" | "db-dump")
+      if [ -f ".atmo-docker/db/initdb.d/db.sql.gz" ]; then
+        verbalize "$dcompcmd exec php magerun db:dump /tmp/db.sql && $dcompcmd exec php gzip -f /tmp/db.sql"
+        verbalize "docker cp $(get_service_container_name):/tmp/db.sql.gz .atmo-docker/db/initdb.d/db.sql.gz"
+      fi
+      ;;
+    "n98" | "magerun")
+      shift
+      verbalize "$dcompcmd exec php magerun $@"
+      ;;
+    *)
+      verbalize "$dcompcmd exec php php bin/magento $@"
+      ;;
+  esac
   exit 0;
   ;;
 
