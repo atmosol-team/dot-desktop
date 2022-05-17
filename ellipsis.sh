@@ -10,6 +10,7 @@ packages=(
 
 # List of apt packages to install on any apt-based system
 apt_packages=(
+    git-lfs
     imagemagick
     keychain
     php
@@ -75,6 +76,9 @@ pkg.install() {
 
     # Install packages
     meta.install_packages
+
+    # Git LFS additional install step
+    sh -c 'cd && git lfs install 2>/dev/null'
 
     # Run setup scripts
     for file in $(find "$PKG_PATH/setup" -maxdepth 1 -type f -name "*.sh"); do
