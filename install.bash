@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Defaults
-PACKAGES='ssh://git@bitbucket.org/atmosol/dot-desktop'
+PACKAGES='atmosol-team/dot-desktop'
 SSH_KEY=$HOME/.ssh/id_rsa
 SSH_COMMENT="$(whoami)@$(hostname)"
 

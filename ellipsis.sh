@@ -3,8 +3,8 @@
 # Main list of packages for desktop. OS-agnostic.
 packages=(
     thomshouse/git
-    ssh://git@bitbucket.org/atmosol/dot-vscode
-    ssh://git@bitbucket.org/atmosol/dot-zsh
+    atmosol-team/dot-vscode
+    atmosol-team/dot-zsh
     thomshouse-ellipsis/docker
 );
 
