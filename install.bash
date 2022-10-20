@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Defaults
-PACKAGES='atmosol-team/dot-desktop'
+PACKAGES='atmosol-team/desktop'
 SSH_KEY=$HOME/.ssh/id_rsa
 SSH_COMMENT="$(whoami)@$(hostname)"
 
