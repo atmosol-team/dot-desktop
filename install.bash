@@ -57,7 +57,7 @@ eval `ssh-agent` &>/dev/null
 ssh-add "$SSH_KEY"
 
 # Test to see if SSH key needs to be added to Bitbucket
-read -e -p "Will you be connecting to private Bitbucket repos? (most common for US team members) [Y/n] " DO_BITBUCKET_TEST
+echo "" && read -e -p "Will you be connecting to private Bitbucket repos? (most common for US team members) [Y/n] " DO_BITBUCKET_TEST
 if [[ ! $DO_BITBUCKET_TEST =~ ^[Nn][Oo]?$ ]]; then
     ssh -i "$SSH_KEY" -T git@bitbucket.org 2>/dev/null
     if [ $? -eq 255 ]; then
