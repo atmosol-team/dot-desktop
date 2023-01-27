@@ -5,6 +5,10 @@ defaultEntryPoints = ["http"]
     address = ":80"
   [entryPoints.livereload]
     address = ":35729"
+  [entryPoints.browsersync]
+    address = ":3000"
+  [entryPoints.browsersyncui]
+    address = ":3001"
 
 [retry]
 
