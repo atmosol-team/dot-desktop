@@ -12,6 +12,9 @@ elif [ ! -x "$(command -v mutagen)" ] && [ "$(uname -s)" = "Darwin" ]; then
     echo ""
     echo ""
 else
+    # Login to atmosol docker registry
+    echo "Logging in to atmosol private registry:"
+    docker login registry.ops.atmosol.net
 
     # Start dnsmasq and traefik
     docker network create traefik_default >/dev/null 2>&1
