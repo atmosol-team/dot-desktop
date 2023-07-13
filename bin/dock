@@ -41,6 +41,8 @@ subcmd="$1";
 
 function verbalize() {
   params="$@";
+  export DOCK_UID=$(id -u)
+  export DOCK_GID=$(id -g)
   format_command $@;
   eval "$params";
 }
@@ -321,6 +323,24 @@ case "$1" in
   exit 0;
   ;;
 
+# Fix permissions on repository to match docker UID/GID
+"fixperms")
+  cd_to_dockercompose_folder;
+  echo "Looking for files with incorrect permissions. This may take a few minutes...";
+  BADPERMCOUNT=$(find . ! -user $(id -u) ! -gid $(id -g) | wc -l);
+  printf '\e[A\e[K'
+  if [ $BADPERMCOUNT -gt 0 ]; then
+    sudo true
+    echo "Found $BADPERMCOUNT files with incorrect permissions. Fixing..."
+    sudo chown -R --quiet $(id -u):$(id -g) .
+    printf '\e[A\e[K'
+    echo "Found $BADPERMCOUNT files with incorrect permissions. Fixing... done."
+  else
+    echo "No files with incorrect permissions found."
+  fi
+  exit 0;
+  ;;
+
 # Global commands -- affect all docker containers/images across host
 "global" | "g" | "all")
   shift;
@@ -350,11 +370,11 @@ case "$1" in
 
 *)
   echo ""
-  echo "Usage: $cmd [-f|--file FILE] up|down|exec|sh|magento|stencil|watch|status|destroy|rebuild|global|run|compose [...]";
+  echo "Usage: $cmd [-f|--file FILE] up|down|exec|sh|magento|stencil|watch|status|destroy|rebuild|global|run|compose|url|fixperms [...]";
   echo ""
   echo "Shortcuts:"
   echo "    m2 = magento    bc = stencil    x = exec"
-  echo "    ls = status    vg = global      r = run"
+  echo "    ls = status     g = global      r = run"
   echo "    c = compose"
   echo ""
   exit 1;
