@@ -35,10 +35,10 @@ else
     if [ $? -eq 0 ]; then
         # Restart it if it's running
         docker-compose down >/dev/null 2>&1 && echo "Stopping dnsmasq..." \
-            && docker-compose up -d >/dev/null 2>&1 && echo "Restarting dnsmasq..."
+            && docker-compose --compatibility up -d >/dev/null 2>&1 && echo "Restarting dnsmasq..."
     else
         # Start it if it's not running
-        docker-compose up -d >/dev/null 2>&1 && echo "Starting dnsmasq..."
+        docker-compose --compatibility up -d >/dev/null 2>&1 && echo "Starting dnsmasq..."
     fi
     [ $? -ne 0 ] && echo "Error restarting dnsmasq!" 1>&2
 
@@ -48,10 +48,10 @@ else
     if [ $? -eq 0 ]; then
         # Restart it if it's running
         docker-compose down >/dev/null 2>&1; echo "Stopping traefik..." # docker down will error because of the network
-        docker-compose up -d >/dev/null 2>&1 && echo "Restarting traefik..."
+        docker-compose --compatibility up -d >/dev/null 2>&1 && echo "Restarting traefik..."
     else
         # Start it if it's not running
-        docker-compose up -d >/dev/null 2>&1 && echo "Starting traefik..."
+        docker-compose --compatibility up -d >/dev/null 2>&1 && echo "Starting traefik..."
     fi
     [ $? -ne 0 ] && echo "Error restarting traefik!" 1>&2
 

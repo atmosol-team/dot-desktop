@@ -127,7 +127,7 @@ case "$1" in
 "up" | "start")
   shift;
   cd_to_dockercompose_folder;
-  verbalize "$dcompcmd up -d $@";
+  verbalize "$dcompcmd --compatibility up -d $@";
   if [ $? -eq 0 ]; then
     if command -v mutagen; then
       if [ -f ".atmo-mutagen.yml.dist" ]; then
@@ -173,7 +173,7 @@ case "$1" in
   fi
   verbalize $dcompcmd down -v;
   verbalize $dcompcmd build --pull;
-  verbalize $dcompcmd up -d;
+  verbalize $dcompcmd --compatibility up -d;
   if [ $? -eq 0 ]; then
     if command -v mutagen; then
       if [ -f ".atmo-mutagen.yml.dist" ]; then
@@ -200,7 +200,7 @@ case "$1" in
 "watch" | "logs")
   shift;
   cd_to_dockercompose_folder;
-  verbalize "$dcompcmd up -d $@";
+  verbalize "$dcompcmd --compatibility up -d $@";
   if [ $? -eq 0 ]; then
     if command -v mutagen; then
       if [ -f ".atmo-mutagen.yml.dist" ]; then
@@ -213,6 +213,13 @@ case "$1" in
   fi
   verbalize "$dcompcmd logs -f $@";
   exit 0;
+  ;;
+
+# Display docker stats
+"stats" | "top")
+  tput smcup
+  docker stats
+  tput rmcup
   ;;
 
 # Print the default URL for a given project, based on the .env file

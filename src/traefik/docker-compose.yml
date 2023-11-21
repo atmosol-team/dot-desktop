@@ -3,6 +3,10 @@ version: '3'
 services:
   reverse-proxy:
     image: traefik:alpine
+    deploy:
+      resources:
+        limits:
+          memory: 256m
     ports:
       - "80:80"
       - "3000:3000"

@@ -4,6 +4,10 @@ services:
   dnsmasq:
     image: jpillora/dnsmasq
     container_name: dnsmasq
+    deploy:
+      resources:
+        limits:
+          memory: 256m
     ports:
       - "53:53/udp"
       - "5380:8080"
