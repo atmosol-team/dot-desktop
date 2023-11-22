@@ -218,6 +218,7 @@ case "$1" in
 # Display docker stats
 "stats" | "top")
   tput smcup
+  trap "tput rmcup" SIGINT SIGTERM
   docker stats
   tput rmcup
   ;;
