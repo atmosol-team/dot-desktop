@@ -139,7 +139,7 @@ fi
 
 echo -e "\nInstalling ellipsis...\n"
 
-curl -sL ellipsis.sh | sh
+curl -sL https://raw.githubusercontent.com/ellipsis/ellipsis/gh-pages/index.html | sh
 if [ -x "$HOME/.ellipsis/bin/ellipsis" ]; then
     echo -e "\nInstalling the following packages: $PACKAGES...\n"
     sleep 5
