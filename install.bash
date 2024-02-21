@@ -133,7 +133,7 @@ fi
 
 echo -e "\nInstalling ellipsis with the following packages: $PACKAGES...\n"
 
-curl -sL ellipsis.sh | ELLIPSIS_USER="$ELLIPSIS_USER" ELLIPSIS_PROTO='git' PACKAGES="$PACKAGES" sh
+curl -sL https://raw.githubusercontent.com/ellipsis/ellipsis/gh-pages/index.html | ELLIPSIS_USER="$ELLIPSIS_USER" ELLIPSIS_PROTO='git' PACKAGES="$PACKAGES" sh
 
 # Stop the SSH agent
 ssh-agent -k &>/dev/null
